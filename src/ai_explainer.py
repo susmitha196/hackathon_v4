@@ -44,7 +44,16 @@ class AIExplainer:
                         temperature=0.7
                     )
             except Exception as e:
-                print(f"Warning: Could not initialize OpenAI: {e}")
+                # Safely handle error message to avoid encoding issues on Windows
+                try:
+                    error_msg = str(e)
+                except:
+                    error_msg = "Unknown error occurred"
+                import sys
+                try:
+                    sys.stderr.write(f"Warning: Could not initialize OpenAI: {error_msg}\n")
+                except:
+                    pass  # Silently fail if even stderr write fails
                 self.llm = None
     
     def explain(self, prediction_result, sensor_data):
@@ -116,7 +125,16 @@ Keep responses concise (2-3 sentences each) and actionable.""")
             }
             
         except Exception as e:
-            print(f"Error generating AI explanation: {e}")
+            # Safely handle error message to avoid encoding issues on Windows
+            try:
+                error_msg = str(e)
+            except:
+                error_msg = "Unknown error occurred"
+            import sys
+            try:
+                sys.stderr.write(f"Error generating AI explanation: {error_msg}\n")
+            except:
+                pass  # Silently fail if even stderr write fails
             return self._dummy_explanation(prediction_result, sensor_data)
     
     def _dummy_explanation(self, prediction_result, sensor_data):

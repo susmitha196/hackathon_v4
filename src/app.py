@@ -24,6 +24,7 @@ from ml_model import DowntimePredictor
 from ai_explainer import AIExplainer
 from gemini_analyzer import GeminiAnalyzer
 from automation import AutomationTrigger
+from error_codes import determine_error_code, ErrorCodes
 
 # Load environment variables
 load_dotenv()
@@ -575,12 +576,223 @@ with col2:
         
         # Trigger automation if risk is high
         if risk >= 75:
-            auto_result = automation.trigger_maintenance_alert(risk, current_sensor, explanation_dict)
+            # Determine error code using centralized error code definitions
+            error_code = determine_error_code(current_sensor, risk)
+            error_description = ErrorCodes.DESCRIPTIONS.get(error_code, 'Unknown error')
+            
+            auto_result = automation.trigger_maintenance_alert(risk, current_sensor, explanation_dict, error_code)
             if auto_result['triggered']:
-                st.success(f"🚨 **Automation Triggered:** {auto_result['message']}")
+                # Store alarm trigger time in session state
+                st.session_state.last_alarm_time = datetime.now().isoformat()
+                st.session_state.last_alarm_code = error_code
+                st.session_state.last_alarm_risk = risk
+                
+                # Display prominent alarm message banner
+                st.markdown("---")
+                alarm_html = f"""
+                <div style='background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%); 
+                            padding: 25px; 
+                            border-radius: 10px; 
+                            border: 4px solid #ff0000; 
+                            margin: 20px 0;
+                            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                            animation: pulse 2s infinite;'>
+                    <h2 style='color: white; 
+                               text-align: center; 
+                               margin: 0 0 15px 0; 
+                               font-size: 28px;
+                               text-shadow: 2px 2px 4px rgba(0,0,0,0.5);'>
+                        🚨 ALARM MESSAGE SENT 🚨
+                    </h2>
+                    <p style='color: white; 
+                               text-align: center; 
+                               margin: 10px 0; 
+                               font-size: 18px;
+                               font-weight: bold;'>
+                        Maintenance alert has been successfully sent to n8n workflow
+                    </p>
+                    <div style='background-color: rgba(255,255,255,0.2); 
+                                padding: 15px; 
+                                border-radius: 5px; 
+                                margin-top: 15px;'>
+                        <p style='color: white; 
+                                   text-align: center; 
+                                   margin: 5px 0; 
+                                   font-size: 16px;'>
+                            <strong>Error Code:</strong> {error_code} - {error_description}
+                        </p>
+                        <p style='color: white; 
+                                   text-align: center; 
+                                   margin: 5px 0; 
+                                   font-size: 16px;'>
+                            <strong>Risk Score:</strong> {risk}% | <strong>Time:</strong> {datetime.now().strftime('%H:%M:%S')}
+                        </p>
+                    </div>
+                </div>
+                <style>
+                    @keyframes pulse {{
+                        0% {{ opacity: 1; }}
+                        50% {{ opacity: 0.9; }}
+                        100% {{ opacity: 1; }}
+                    }}
+                </style>
+                """
+                st.markdown(alarm_html, unsafe_allow_html=True)
+                st.success(f"✅ **Automation Triggered:** {auto_result['message']}")
+                st.info(f"📋 **Error Code:** {error_code} - {error_description}")
+                
+                # Display webhook response data
+                st.markdown("---")
+                st.subheader("📥 Webhook Response from n8n")
+                
+                # Show webhook URL used
+                webhook_url = auto_result.get('url', 'N/A')
+                st.markdown(f"**🌐 Webhook URL:** `{webhook_url}`")
+                
+                # Show response status
+                response_status = auto_result.get('status_code', 'Unknown')
+                if response_status in [200, 201, 202]:
+                    st.success(f"✅ **Status Code:** {response_status} - Success")
+                else:
+                    st.error(f"❌ **Status Code:** {response_status} - Error")
+                
+                # Display response headers if available
+                response_headers = auto_result.get('response_headers', {})
+                if response_headers:
+                    with st.expander("📋 View Response Headers"):
+                        st.json(response_headers)
+                
+                # Display response data
+                response_data = auto_result.get('response_data', {})
+                full_response = auto_result.get('response', '')
+                
+                # Extract Gemini response from n8n workflow output
+                gemini_response = None
+                if response_data and isinstance(response_data, dict):
+                    # Try different n8n response structures
+                    # Structure 1: {"output": [{"json": {"output": "text"}}]}
+                    if 'output' in response_data:
+                        output = response_data['output']
+                        if isinstance(output, list) and len(output) > 0:
+                            if isinstance(output[0], list) and len(output[0]) > 0:
+                                first_item = output[0][0]
+                                if isinstance(first_item, dict) and 'json' in first_item:
+                                    json_data = first_item['json']
+                                    if isinstance(json_data, dict):
+                                        # Look for common output fields
+                                        gemini_response = json_data.get('output') or json_data.get('text') or json_data.get('response') or json_data.get('message')
+                        elif isinstance(output, str):
+                            gemini_response = output
+                    # Structure 2: Direct text response
+                    elif 'text' in response_data:
+                        gemini_response = response_data['text']
+                    elif 'response' in response_data:
+                        gemini_response = response_data['response']
+                    elif 'message' in response_data:
+                        gemini_response = response_data['message']
+                    # Structure 3: Check if entire response is a string (raw text)
+                    elif len(response_data) == 1 and 'raw_response' in response_data:
+                        raw = response_data['raw_response']
+                        if isinstance(raw, str) and not raw.startswith('{'):
+                            gemini_response = raw
+                
+                # Display Gemini response prominently if found
+                if gemini_response:
+                    st.markdown("---")
+                    st.subheader("🤖 Gemini AI Response from n8n Workflow")
+                    st.markdown(f"""
+                    <div style='
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 20px;
+                        border-radius: 10px;
+                        border: 2px solid #667eea;
+                        margin: 15px 0;
+                        color: white;
+                    '>
+                        <h3 style='color: white; margin: 0 0 10px 0;'>💡 AI-Generated Error Description</h3>
+                        <p style='color: white; font-size: 16px; line-height: 1.6; margin: 0;'>{gemini_response}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    st.markdown("---")
+                
+                if response_data and isinstance(response_data, dict) and len(response_data) > 0:
+                    st.markdown("**📦 Full Parsed JSON Response:**")
+                    st.json(response_data)
+                    
+                    # Display key fields prominently if available
+                    st.markdown("**🔑 Key Information:**")
+                    key_found = False
+                    if 'message' in response_data and not gemini_response:
+                        st.info(f"💬 **Message:** {response_data['message']}")
+                        key_found = True
+                    if 'executionId' in response_data:
+                        st.info(f"🆔 **Execution ID:** {response_data['executionId']}")
+                        key_found = True
+                    if 'workflowId' in response_data:
+                        st.info(f"📋 **Workflow ID:** {response_data['workflowId']}")
+                        key_found = True
+                    if 'data' in response_data:
+                        st.info(f"📊 **Data:** {response_data['data']}")
+                        key_found = True
+                    if not key_found and not gemini_response:
+                        # Show all keys if no standard keys found
+                        for key, value in response_data.items():
+                            if key != 'raw_response':
+                                st.info(f"**{key}:** {value}")
+                
+                # Always show full raw response
+                if full_response:
+                    st.markdown("**📄 Full Raw Response Text:**")
+                    st.code(full_response, language='json' if response_data else 'text')
+                
+                # Show what was sent
+                with st.expander("📤 View Data Sent to n8n"):
+                    sent_data = {
+                        'error_code': error_code,
+                        'error_description': error_description,
+                        'error_severity': ErrorCodes.SEVERITY.get(error_code, 'UNKNOWN'),
+                        'risk_score': risk,
+                        'alert_type': 'high_downtime_risk',
+                        'timestamp': datetime.now().isoformat(),
+                        'sensor_data': current_sensor,
+                        'explanation': explanation_dict
+                    }
+                    st.json(sent_data)
             elif auto_result.get('success') == False and automation.is_configured():
-                st.warning(f"⚠️ Automation failed: {auto_result.get('message', 'Unknown error')}")
-                st.warning(f"⚠️ Automation: {auto_result['message']}")
+                error_message = auto_result.get('message', 'Unknown error')
+                st.warning(f"⚠️ Automation failed: {error_message}")
+                
+                # Special handling for timeout errors
+                if auto_result.get('timeout'):
+                    st.info("💡 **Tip:** Gemini API calls in n8n can take 10-20 seconds. Consider:")
+                    st.markdown("""
+                    - Check if your n8n workflow is active
+                    - Verify Gemini API credentials in n8n
+                    - Check n8n execution logs for errors
+                    - Consider optimizing your workflow for faster execution
+                    """)
+                
+                # Still show response data even if it failed
+                if auto_result.get('status_code'):
+                    st.markdown("---")
+                    st.subheader("📥 Webhook Response from n8n (Error)")
+                    
+                    webhook_url = auto_result.get('url', 'N/A')
+                    st.markdown(f"**🌐 Webhook URL:** `{webhook_url}`")
+                    
+                    response_status = auto_result.get('status_code')
+                    st.error(f"❌ **Status Code:** {response_status}")
+                    
+                    response_data = auto_result.get('response_data', {})
+                    full_response = auto_result.get('response', '')
+                    
+                    if response_data:
+                        st.markdown("**📦 Response Data:**")
+                        st.json(response_data)
+                    
+                    if full_response:
+                        st.markdown("**📄 Full Response Text:**")
+                        st.code(full_response, language='text')
         
         # Gemini Trend Analysis
         data_length = len(trend_df) if st.session_state.data_source_mode == 'json' else len(st.session_state.sensor_history)

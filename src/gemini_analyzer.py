@@ -25,7 +25,16 @@ class GeminiAnalyzer:
                 genai.configure(api_key=self.gemini_api_key)
                 self.model = genai.GenerativeModel('gemini-pro')
             except Exception as e:
-                print(f"Warning: Could not initialize Gemini: {e}")
+                # Safely handle error message to avoid encoding issues on Windows
+                try:
+                    error_msg = str(e)
+                except:
+                    error_msg = "Unknown error occurred"
+                import sys
+                try:
+                    sys.stderr.write(f"Warning: Could not initialize Gemini: {error_msg}\n")
+                except:
+                    pass  # Silently fail if even stderr write fails
                 self.model = None
     
     def analyze_trends(self, sensor_history):
@@ -99,7 +108,17 @@ Keep it concise and actionable."""
             }
             
         except Exception as e:
-            print(f"Error analyzing trends with Gemini: {e}")
+            # Safely handle error message to avoid encoding issues on Windows
+            try:
+                error_msg = str(e)
+            except:
+                error_msg = "Unknown error occurred"
+            # Use a safer logging approach instead of print
+            import sys
+            try:
+                sys.stderr.write(f"Error analyzing trends with Gemini: {error_msg}\n")
+            except:
+                pass  # Silently fail if even stderr write fails
             return self._dummy_analysis(sensor_history)
     
     def _extract_anomalies(self, text):

@@ -47,3 +47,6 @@ Thumbs.db
 # Deployment
 *.key
 *.pem
+
+# UI/Frontend (excluded from git - deploy separately)
+agentic-ai-website/

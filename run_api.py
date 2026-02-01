@@ -14,7 +14,10 @@ if __name__ == "__main__":
     try:
         from api import app
         import uvicorn
-        uvicorn.run(app, host="0.0.0.0", port=8000)
+        # Use PORT environment variable if available (for Railway/Render/etc), otherwise default to 8000
+        import os
+        port = int(os.getenv("PORT", 8000))
+        uvicorn.run(app, host="0.0.0.0", port=port)
     except ImportError as e:
         print(f"Error importing api: {e}")
         print(f"Make sure api.py exists in {src_path}")

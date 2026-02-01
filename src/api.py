@@ -446,4 +446,6 @@ def complete_analysis(sensor_data: SensorData):
         raise HTTPException(status_code=500, detail=f"Complete analysis error: {str(e)}")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Use PORT environment variable if available (for Railway/Render/etc), otherwise default to 8000
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

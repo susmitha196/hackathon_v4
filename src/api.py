@@ -2,13 +2,16 @@
 FastAPI Backend - Complete API for Factory Copilot
 Provides all endpoints needed to replace Streamlit UI
 """
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import os
 import sys
+import re
 
 # Add src directory to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -28,6 +31,22 @@ app = FastAPI(
     version="1.0.0",
     description="Complete API for Factory Copilot - All features available via REST endpoints"
 )
+
+# Middleware to normalize double slashes in URLs
+class NormalizePathMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Normalize multiple slashes in path to single slashes
+        path = request.url.path
+        if "//" in path:
+            # Replace multiple consecutive slashes with single slash
+            normalized_path = re.sub(r'/+', '/', path)
+            # Update the scope's path_info (used for routing)
+            request.scope["path"] = normalized_path
+            request.scope["path_info"] = normalized_path
+        return await call_next(request)
+
+# Add path normalization middleware (before CORS)
+app.add_middleware(NormalizePathMiddleware)
 
 # Enable CORS
 app.add_middleware(

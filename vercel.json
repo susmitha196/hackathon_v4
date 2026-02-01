@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm install --prefix agentic-ai-website && npm run build --prefix agentic-ai-website",
+  "outputDirectory": "agentic-ai-website/dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

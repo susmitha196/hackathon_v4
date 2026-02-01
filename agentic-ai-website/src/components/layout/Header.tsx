@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Workflow, Menu, X } from 'lucide-react';
+import { Workflow, Menu, X, LogIn, LogOut } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const navLinks = [
@@ -19,6 +20,10 @@ function scrollToSection(sectionId: string) {
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [location] = useLocation();
+
+  // Check if we're on Dashboard or Live Monitoring Dashboard pages
+  const isDashboardPage = location === '/dashboard' || location === '/services/factory-orchestrator/dashboard';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -35,40 +40,57 @@ export function Header() {
     >
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+          <Link
+            href="/"
             className="flex items-center gap-2 font-display font-semibold text-xl text-foreground hover:text-primary transition-colors"
             aria-label="Mickey AI - Home"
           >
             <Workflow className="h-8 w-8 text-primary" aria-hidden />
             <span>Mickey AI</span>
-          </a>
+          </Link>
 
-          <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
-            {navLinks.map((link) => (
+          {!isDashboardPage && (
+            <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
+              {navLinks.map((link) => (
+                <button
+                  key={link.id}
+                  type="button"
+                  onClick={() => scrollToSection(link.id)}
+                  className="text-muted-foreground hover:text-primary transition-colors font-medium text-sm"
+                >
+                  {link.label}
+                </button>
+              ))}
+            </nav>
+          )}
+
+          <div className="hidden md:flex items-center gap-3">
+            {!isDashboardPage && (
               <button
-                key={link.id}
                 type="button"
-                onClick={() => scrollToSection(link.id)}
-                className="text-muted-foreground hover:text-primary transition-colors font-medium text-sm"
+                onClick={() => scrollToSection('contact')}
+                className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 btn-hover min-h-[44px]"
               >
-                {link.label}
+                Talk to us
               </button>
-            ))}
-          </nav>
-
-          <div className="hidden md:block">
-            <button
-              type="button"
-              onClick={() => scrollToSection('contact')}
-              className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 btn-hover min-h-[44px]"
-            >
-              Get Started
-            </button>
+            )}
+            {isDashboardPage ? (
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border bg-card text-foreground font-semibold hover:bg-muted transition-colors min-h-[44px]"
+              >
+                <LogOut className="h-4 w-4" />
+                Log out
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border bg-card text-foreground font-semibold hover:bg-muted transition-colors min-h-[44px]"
+              >
+                <LogIn className="h-4 w-4" />
+                Log In
+              </Link>
+            )}
           </div>
 
           <button
@@ -92,29 +114,52 @@ export function Header() {
             className="md:hidden border-t border-border bg-card"
           >
             <nav className="container mx-auto px-6 py-4 flex flex-col gap-2" aria-label="Mobile navigation">
-              {navLinks.map((link) => (
-                <button
-                  key={link.id}
-                  type="button"
-                  onClick={() => {
-                    scrollToSection(link.id);
-                    setMobileOpen(false);
-                  }}
-                  className="text-left py-3 text-muted-foreground hover:text-primary font-medium min-h-[44px]"
+              {!isDashboardPage && (
+                <>
+                  {navLinks.map((link) => (
+                    <button
+                      key={link.id}
+                      type="button"
+                      onClick={() => {
+                        scrollToSection(link.id);
+                        setMobileOpen(false);
+                      }}
+                      className="text-left py-3 text-muted-foreground hover:text-primary font-medium min-h-[44px]"
+                    >
+                      {link.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      scrollToSection('contact');
+                      setMobileOpen(false);
+                    }}
+                    className="mt-2 w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold min-h-[44px]"
+                  >
+                    Talk to us
+                  </button>
+                </>
+              )}
+              {isDashboardPage ? (
+                <Link
+                  href="/"
+                  onClick={() => setMobileOpen(false)}
+                  className="mt-2 w-full py-3 rounded-lg border border-border bg-card text-foreground font-semibold hover:bg-muted flex items-center justify-center gap-2 min-h-[44px]"
                 >
-                  {link.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => {
-                  scrollToSection('contact');
-                  setMobileOpen(false);
-                }}
-                className="mt-2 w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold min-h-[44px]"
-              >
-                Get Started
-              </button>
+                  <LogOut className="h-4 w-4" />
+                  Log out
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="mt-2 w-full py-3 rounded-lg border border-border bg-card text-foreground font-semibold hover:bg-muted flex items-center justify-center gap-2 min-h-[44px]"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Log In
+                </Link>
+              )}
             </nav>
           </motion.div>
         )}

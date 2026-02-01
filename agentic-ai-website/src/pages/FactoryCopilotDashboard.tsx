@@ -12,7 +12,6 @@ import {
   Zap,
   RefreshCw,
   Play,
-  Pause,
   Settings,
   Upload,
   FileJson
@@ -179,6 +178,15 @@ export function FactoryCopilotDashboard() {
     }
   }, [sensorHistory, failureMode, failureProgress, dataSource]);
 
+  // Auto-start refresh when live mode is selected
+  useEffect(() => {
+    if (dataSource === 'live') {
+      setIsAutoRefresh(true);
+    } else {
+      setIsAutoRefresh(false);
+    }
+  }, [dataSource]);
+
   // Auto-refresh effect (only for live data)
   useEffect(() => {
     if (!isAutoRefresh || dataSource !== 'live') return;
@@ -228,11 +236,11 @@ export function FactoryCopilotDashboard() {
           {/* Header */}
           <div className="mb-8">
             <Link
-              href="/services/factory-orchestrator"
+              href="/dashboard"
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden />
-              Back to Factory Orchestrator
+              Back
             </Link>
 
             <div className="flex items-center gap-3 mb-4">
@@ -241,7 +249,7 @@ export function FactoryCopilotDashboard() {
               </div>
               <div>
                 <h1 className="font-display font-bold text-3xl sm:text-4xl text-foreground">
-                  Factory Copilot Dashboard
+                  Live Monitoring Dashboard
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Real-time Machine Health Monitoring & Downtime Prediction
@@ -263,7 +271,6 @@ export function FactoryCopilotDashboard() {
                     checked={dataSource === 'live'}
                     onChange={() => {
                       setDataSource('live');
-                      setIsAutoRefresh(false);
                     }}
                     className="rounded"
                   />
@@ -300,22 +307,12 @@ export function FactoryCopilotDashboard() {
               {/* Live Data Controls */}
               {dataSource === 'live' && (
                 <div className="flex flex-wrap items-center gap-4">
-                  <button
-                    onClick={() => setIsAutoRefresh(!isAutoRefresh)}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                      isAutoRefresh
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-foreground hover:bg-muted/80'
-                    }`}
-                  >
-                    {isAutoRefresh ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                    {isAutoRefresh ? 'Pause' : 'Start'} Auto-Refresh
-                  </button>
-
+                  {/* Hidden refresh button - kept for background functionality */}
                   <button
                     onClick={generateReading}
                     disabled={isLoading}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/80 font-medium transition-colors disabled:opacity-50"
+                    className="hidden"
+                    aria-hidden="true"
                   >
                     <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                     Refresh Now
@@ -333,22 +330,6 @@ export function FactoryCopilotDashboard() {
                     />
                     <span className="text-sm text-muted-foreground">Simulate Failure</span>
                   </label>
-
-                  <div className="flex items-center gap-2">
-                    <Settings className="h-4 w-4 text-muted-foreground" />
-                    <input
-                      type="range"
-                      min="500"
-                      max="5000"
-                      step="500"
-                      value={refreshInterval}
-                      onChange={(e) => setRefreshInterval(Number(e.target.value))}
-                      className="w-32"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {(refreshInterval / 1000).toFixed(1)}s
-                    </span>
-                  </div>
                 </div>
               )}
 
@@ -438,6 +419,103 @@ export function FactoryCopilotDashboard() {
                 </div>
               )}
 
+              {/* Error Code */}
+              {analysis && (
+                <div className="rounded-xl border border-border bg-card p-6">
+                  <h2 className="font-display font-bold text-xl text-foreground mb-4">
+                    Error Code
+                  </h2>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Code</div>
+                      <div className="text-2xl font-bold text-foreground">
+                        {analysis.error_code.code}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Description</div>
+                      <div className="text-foreground font-medium">
+                        {analysis.error_code.description}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Severity</div>
+                      <div
+                        className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                          analysis.error_code.severity === 'CRITICAL'
+                            ? 'bg-red-500/20 text-red-500'
+                            : analysis.error_code.severity === 'HIGH'
+                            ? 'bg-yellow-500/20 text-yellow-500'
+                            : 'bg-green-500/20 text-green-500'
+                        }`}
+                      >
+                        {analysis.error_code.severity}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* AI Explanation */}
+              {analysis && (
+                <div className="rounded-xl border border-border bg-card p-6">
+                  <h2 className="font-display font-bold text-xl text-foreground mb-4 flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    AI Analysis
+                  </h2>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground mb-2">
+                        Root Cause:
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted text-foreground">
+                        {analysis.explanation.root_cause}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground mb-2">
+                        Recommended Action:
+                      </div>
+                      <div className="p-3 rounded-lg bg-primary/10 border border-primary/30 text-foreground">
+                        {analysis.explanation.recommended_action}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Trend Analysis - Hidden */}
+              {false && trendAnalysis && (
+                <div className="rounded-xl border border-border bg-card p-6 hidden">
+                  <h2 className="font-display font-bold text-xl text-foreground mb-4 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-accent" />
+                    Trend Analysis (Gemini)
+                  </h2>
+                  <div className="space-y-3">
+                    <div className="p-3 rounded-lg bg-muted text-foreground">
+                      {trendAnalysis.summary}
+                    </div>
+                    {trendAnalysis.anomalies.length > 0 && (
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground mb-2">
+                          Anomalies Detected:
+                        </div>
+                        <ul className="list-disc list-inside space-y-1">
+                          {trendAnalysis.anomalies.map((anomaly, idx) => (
+                            <li key={idx} className="text-sm text-foreground">
+                              {anomaly}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column - Downtime Risk Score & Automation */}
+            <div className="space-y-6">
               {/* Risk Score */}
               {analysis && (
                 <div className={`rounded-xl border p-6 ${riskBg}`}>
@@ -473,103 +551,6 @@ export function FactoryCopilotDashboard() {
                           </span>
                         </div>
                       ))}
-                  </div>
-                </div>
-              )}
-
-              {/* AI Explanation */}
-              {analysis && (
-                <div className="rounded-xl border border-border bg-card p-6">
-                  <h2 className="font-display font-bold text-xl text-foreground mb-4 flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-primary" />
-                    AI Analysis
-                  </h2>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground mb-2">
-                        Root Cause:
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted text-foreground">
-                        {analysis.explanation.root_cause}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground mb-2">
-                        Recommended Action:
-                      </div>
-                      <div className="p-3 rounded-lg bg-primary/10 border border-primary/30 text-foreground">
-                        {analysis.explanation.recommended_action}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Trend Analysis */}
-              {trendAnalysis && (
-                <div className="rounded-xl border border-border bg-card p-6">
-                  <h2 className="font-display font-bold text-xl text-foreground mb-4 flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-accent" />
-                    Trend Analysis (Gemini)
-                  </h2>
-                  <div className="space-y-3">
-                    <div className="p-3 rounded-lg bg-muted text-foreground">
-                      {trendAnalysis.summary}
-                    </div>
-                    {trendAnalysis.anomalies.length > 0 && (
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground mb-2">
-                          Anomalies Detected:
-                        </div>
-                        <ul className="list-disc list-inside space-y-1">
-                          {trendAnalysis.anomalies.map((anomaly, idx) => (
-                            <li key={idx} className="text-sm text-foreground">
-                              {anomaly}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Column - Error Code & Automation */}
-            <div className="space-y-6">
-              {/* Error Code */}
-              {analysis && (
-                <div className="rounded-xl border border-border bg-card p-6">
-                  <h2 className="font-display font-bold text-xl text-foreground mb-4">
-                    Error Code
-                  </h2>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-sm text-muted-foreground">Code</div>
-                      <div className="text-2xl font-bold text-foreground">
-                        {analysis.error_code.code}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">Description</div>
-                      <div className="text-foreground font-medium">
-                        {analysis.error_code.description}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">Severity</div>
-                      <div
-                        className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                          analysis.error_code.severity === 'CRITICAL'
-                            ? 'bg-red-500/20 text-red-500'
-                            : analysis.error_code.severity === 'HIGH'
-                            ? 'bg-yellow-500/20 text-yellow-500'
-                            : 'bg-green-500/20 text-green-500'
-                        }`}
-                      >
-                        {analysis.error_code.severity}
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}

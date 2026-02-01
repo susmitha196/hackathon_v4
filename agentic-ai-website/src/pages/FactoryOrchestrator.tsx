@@ -73,17 +73,10 @@ export function FactoryOrchestrator() {
             </div>
           </section>
 
-          <div className="mt-12 pt-8 border-t border-border flex gap-4">
-            <Link
-              href="/services/factory-orchestrator/dashboard"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
-            >
-              <Activity className="h-4 w-4" />
-              Open Live Dashboard
-            </Link>
+          <div className="mt-12 pt-8 border-t border-border">
             <Link
               href="/#contact"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-border bg-card text-foreground font-semibold hover:bg-muted transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
             >
               Get in touch for a demo
             </Link>

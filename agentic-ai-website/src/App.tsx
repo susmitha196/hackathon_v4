@@ -2,6 +2,8 @@ import { Route, Switch } from 'wouter';
 import { Suspense, lazy } from 'react';
 
 const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })));
+const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
+const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const H2SupplyChainGuardian = lazy(() => import('./pages/H2SupplyChainGuardian').then((m) => ({ default: m.H2SupplyChainGuardian })));
 const FactoryOrchestrator = lazy(() => import('./pages/FactoryOrchestrator').then((m) => ({ default: m.FactoryOrchestrator })));
 const FactoryCopilotDashboard = lazy(() => import('./pages/FactoryCopilotDashboard').then((m) => ({ default: m.FactoryCopilotDashboard })));
@@ -23,6 +25,8 @@ export default function App() {
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/login" component={Login} />
+        <Route path="/dashboard" component={Dashboard} />
         <Route path="/services/h2-supplychain-guardian" component={H2SupplyChainGuardian} />
         <Route path="/services/factory-orchestrator" component={FactoryOrchestrator} />
         <Route path="/services/factory-orchestrator/dashboard" component={FactoryCopilotDashboard} />

@@ -37,12 +37,19 @@ class NormalizePathMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Normalize multiple slashes in path to single slashes
         path = request.url.path
-        if "//" in path:
+        if "//" in path or path.startswith("/"):
             # Replace multiple consecutive slashes with single slash
             normalized_path = re.sub(r'/+', '/', path)
-            # Update the scope's path_info (used for routing)
-            request.scope["path"] = normalized_path
-            request.scope["path_info"] = normalized_path
+            # Ensure path starts with single slash
+            if not normalized_path.startswith('/'):
+                normalized_path = '/' + normalized_path
+            # Update the scope's path_info and raw_path (used for routing)
+            if normalized_path != path:
+                request.scope["path"] = normalized_path
+                request.scope["path_info"] = normalized_path
+                # Also update raw_path if it exists
+                if "raw_path" in request.scope:
+                    request.scope["raw_path"] = normalized_path.encode()
         return await call_next(request)
 
 # Add path normalization middleware (before CORS)

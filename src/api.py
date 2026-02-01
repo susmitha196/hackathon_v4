@@ -445,6 +445,63 @@ def complete_analysis(sensor_data: SensorData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Complete analysis error: {str(e)}")
 
+# Add /api prefix routes for frontend compatibility
+# These duplicate routes ensure both /endpoint and /api/endpoint work
+@app.post("/api/predict", response_model=PredictionResponse)
+def predict_api(sensor_data: SensorData):
+    """API-prefixed version of predict endpoint"""
+    return predict(sensor_data)
+
+@app.post("/api/ai/explain", response_model=AIExplanationResponse)
+def get_ai_explanation_api(
+    prediction: PredictionResponse = Body(...),
+    sensor_data: SensorData = Body(...)
+):
+    """API-prefixed version of AI explain endpoint"""
+    return get_ai_explanation(prediction, sensor_data)
+
+@app.post("/api/ai/trends", response_model=TrendAnalysisResponse)
+def analyze_trends_api(sensor_history: List[SensorReading]):
+    """API-prefixed version of trends endpoint"""
+    return analyze_trends(sensor_history)
+
+@app.post("/api/sensor/generate")
+def generate_sensor_reading_api(
+    mode: str = Body(..., embed=True, description="'normal' or 'failure'"),
+    failure_progress: float = Body(0.0, embed=True, description="Failure progress 0.0-1.0"),
+    history_length: int = Body(0, embed=True, description="Length of sensor history")
+):
+    """API-prefixed version of sensor generate endpoint"""
+    return generate_sensor_reading(mode, failure_progress, history_length)
+
+@app.post("/api/automation/trigger")
+def trigger_automation_api(
+    risk_score: float = Body(..., embed=True),
+    sensor_data: SensorData = Body(...),
+    explanation: Optional[Dict[str, str]] = Body(None, embed=True),
+    error_code: Optional[str] = Body(None, embed=True)
+):
+    """API-prefixed version of automation trigger endpoint"""
+    return trigger_automation(risk_score, sensor_data, explanation, error_code)
+
+@app.get("/api/error-codes")
+def get_error_codes_api():
+    """API-prefixed version of error codes endpoint"""
+    return get_error_codes()
+
+@app.post("/api/error-codes/determine")
+def determine_error_code_endpoint_api(
+    sensor_data: SensorData = Body(...),
+    risk_score: float = Body(..., embed=True)
+):
+    """API-prefixed version of error code determine endpoint"""
+    return determine_error_code_endpoint(sensor_data, risk_score)
+
+@app.post("/api/complete-analysis")
+def complete_analysis_api(sensor_data: SensorData):
+    """API-prefixed version of complete analysis endpoint"""
+    return complete_analysis(sensor_data)
+
 if __name__ == "__main__":
     # Use PORT environment variable if available (for Railway/Render/etc), otherwise default to 8000
     port = int(os.getenv("PORT", 8000))

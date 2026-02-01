@@ -11,8 +11,6 @@ import {
   TrendingUp,
   Zap,
   RefreshCw,
-  Play,
-  Settings,
   Upload,
   FileJson
 } from 'lucide-react';
@@ -33,7 +31,7 @@ export function FactoryCopilotDashboard() {
   const [automationResult, setAutomationResult] = useState<AutomationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAutoRefresh, setIsAutoRefresh] = useState(false);
-  const [refreshInterval, setRefreshInterval] = useState(1000); // 1 second
+  const [refreshInterval] = useState(1000); // 1 second
   const [failureMode, setFailureMode] = useState(false);
   const [failureProgress, setFailureProgress] = useState(0.0);
   const [dataSource, setDataSource] = useState<'live' | 'json'>('live');
@@ -493,9 +491,9 @@ export function FactoryCopilotDashboard() {
                   </h2>
                   <div className="space-y-3">
                     <div className="p-3 rounded-lg bg-muted text-foreground">
-                      {trendAnalysis.summary}
+                      {trendAnalysis?.summary}
                     </div>
-                    {trendAnalysis.anomalies.length > 0 && (
+                    {trendAnalysis?.anomalies && trendAnalysis.anomalies.length > 0 && (
                       <div>
                         <div className="text-sm font-medium text-muted-foreground mb-2">
                           Anomalies Detected:

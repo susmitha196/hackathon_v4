@@ -49,7 +49,7 @@ export function SensorChart({ sensorHistory, title = 'Sensor Trends' }: SensorCh
       font: { size: 18, color: '#ffffff' },
     },
     xaxis: {
-      title: 'Time',
+      title: { text: 'Time' },
       showgrid: true,
       gridwidth: 1,
       gridcolor: 'rgba(255, 255, 255, 0.1)',
@@ -59,7 +59,7 @@ export function SensorChart({ sensorHistory, title = 'Sensor Trends' }: SensorCh
       color: '#a3a3a3',
     },
     yaxis: {
-      title: 'Temperature (°C)',
+      title: { text: 'Temperature (°C)' },
       side: 'left',
       showgrid: true,
       gridwidth: 1,
@@ -70,7 +70,7 @@ export function SensorChart({ sensorHistory, title = 'Sensor Trends' }: SensorCh
       tickfont: { color: '#FF6B6B' },
     },
     yaxis2: {
-      title: 'Vibration (mm/s)',
+      title: { text: 'Vibration (mm/s)' },
       overlaying: 'y',
       side: 'right',
       showgrid: false,
@@ -81,7 +81,7 @@ export function SensorChart({ sensorHistory, title = 'Sensor Trends' }: SensorCh
       position: 0.95,
     },
     yaxis3: {
-      title: 'Cycle Time (s)',
+      title: { text: 'Cycle Time (s)' },
       overlaying: 'y',
       side: 'right',
       showgrid: false,
@@ -92,7 +92,7 @@ export function SensorChart({ sensorHistory, title = 'Sensor Trends' }: SensorCh
       position: 0.85,
     },
     yaxis4: {
-      title: 'Error Count',
+      title: { text: 'Error Count' },
       overlaying: 'y',
       side: 'right',
       showgrid: false,

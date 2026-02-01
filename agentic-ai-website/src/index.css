@@ -1,0 +1,201 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dark theme — blue primary + yellow accent (refined neutrals) */
+:root {
+  /* Brand */
+  --primary: #2563eb;              /* blue */
+  --primary-foreground: #ffffff;   /* white text on blue */
+
+  --accent: #eab308;               /* yellow */
+  --accent-foreground: #0a0a0a;    /* dark text on yellow */
+
+  /* Dark UI (refined neutrals) */
+  --background: #0a0a0a;           /* deep black */
+  --card: #121212;                 /* softer than #1a1a1a */
+  --muted: #161616;                /* section bg */
+
+  --foreground: #ffffff;           /* main text */
+  --muted-foreground: #a3a3a3;     /* secondary text */
+
+  --border: #262626;               /* subtle border */
+  --input: #1a1a1a;                /* input bg */
+  --ring: #2563eb;                 /* focus ring blue */
+
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus ring for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Button hover (blue glow) */
+.btn-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.btn-hover:hover {
+  transform: scale(1.02);
+  box-shadow:
+    0 0 0 1px rgba(37, 99, 235, 0.35),
+    0 10px 25px rgba(37, 99, 235, 0.12);
+}
+
+/* Card hover (subtle lift + blue border) */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.55);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Yellow highlight badge/pill */
+.badge-accent {
+  background: rgba(234, 179, 8, 0.14);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  color: var(--foreground);
+}
+
+/* Accent text (use sparingly) */
+.text-accent {
+  color: var(--accent);
+}
+
+/* Primary glow utility (optional) */
+.glow-primary {
+  box-shadow:
+    0 0 0 1px rgba(37, 99, 235, 0.35),
+    0 12px 30px rgba(37, 99, 235, 0.12);
+}
+
+/* ---- Background effects (sliding interface) ---- */
+.bg-effects-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-effects-bg-image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.bg-effects-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.72);
+}
+
+.bg-effects-gradient {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  animation: bg-effects-float 20s ease-in-out infinite;
+}
+
+.bg-effects-orb-1 {
+  width: min(80vw, 600px);
+  height: min(80vw, 600px);
+  top: -15%;
+  left: -10%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, transparent 70%);
+  animation-delay: 0s;
+}
+
+.bg-effects-orb-2 {
+  width: min(60vw, 400px);
+  height: min(60vw, 400px);
+  top: 40%;
+  right: -5%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 70%);
+  animation-delay: -7s;
+}
+
+.bg-effects-orb-3 {
+  width: min(50vw, 350px);
+  height: min(50vw, 350px);
+  bottom: -10%;
+  left: 30%;
+  background: radial-gradient(circle, rgba(234, 179, 8, 0.08) 0%, transparent 70%);
+  animation-delay: -14s;
+}
+
+@keyframes bg-effects-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(2%, -2%) scale(1.02);
+  }
+  66% {
+    transform: translate(-1%, 1%) scale(0.98);
+  }
+}
+
+.bg-effects-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bg-effects-glow-primary {
+  animation: bg-effects-pulse 12s ease-in-out infinite;
+}
+
+.bg-effects-glow-accent {
+  animation: bg-effects-pulse 14s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+@keyframes bg-effects-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.bg-effects-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+}
+
+.bg-effects-noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
